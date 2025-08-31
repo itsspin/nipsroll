@@ -1,38 +1,109 @@
-How to install
+Nips Roll (NRG) – Release v1.0.1
+🎲 Overview
 
-Quit WoW.
+Nips Roll (NRG) is a lightweight WoW 3.3.5a addon for Project Epoch (and other Wrath private servers) that makes hosting fun roll-based betting games easy. Inspired by Cross Gambling, it adds Hi/Lo roll games and 1v1 Death Rolls, with automatic announcements, player joins, and result tracking.
 
-Create folder:
+Open the panel with /nrg.
+
+✨ Features
+
+Hi/Lo Mode
+
+Host sets gold bet and roll range (default 1–100).
+
+Players join by typing 1 in the chosen channel (SAY, PARTY, RAID, or BATTLEGROUND).
+
+“Last Call” option to announce a final join reminder.
+
+Host clicks Start Rolling! → addon listens for rolls and auto-announces results.
+
+Settlement announced: lowest roller pays highest roller the bet amount.
+
+Death Roll Mode
+
+Classic 1v1 elimination roll game.
+
+Host sets starting max (default 1000).
+
+Players alternate /roll 1-X. The roll sets the new max for the next turn.
+
+First player to roll 1 loses, pays the opponent the bet amount.
+
+Addon enforces turn order and announces each step.
+
+Channel Support
+
+Works in SAY, PARTY, RAID, and BATTLEGROUND chats.
+
+Listens to both normal and leader variations (e.g. RAID_LEADER).
+
+Join System
+
+Players don’t need the addon — they just type 1 in chat.
+
+Host sees a live roster of who joined and their rolls.
+
+Robust Roll Parsing
+
+Compatible with Wrath 3.3.5 roll messages (Name rolls 42 (1-100)).
+
+Filters invalid ranges and duplicate rolls.
+
+UI Host Panel
+
+Easy buttons for New Game, Last Call, Join (Self), Start Rolling, Cancel/Reset.
+
+Editable bet, roll range, starting max, and death roll participants.
+
+Drag/movable panel with roster box showing game state.
+
+🛠 Fixes in v1.0.1
+
+Slash Command Reliability
+/nrg now always works, even if other parts of the addon fail.
+
+3.3.5a Compatibility
+
+Added event support for *_LEADER chat events.
+
+Roll parser tightened for Wrath-era format.
+
+UI Safety
+Built only after ADDON_LOADED to prevent nil errors.
+
+Channel Fallback
+If chosen channel is unavailable (e.g., RAID not in a raid), announcements echo locally with a warning.
+
+General Stability
+Removed fragile API calls, ensured legacy string helpers exist, hardened state resets.
+
+🚀 Install
+
+Extract into:
+
 World of Warcraft\Interface\AddOns\NipsRoll\
 
-Put NipsRoll.toc and NipsRoll.lua in that folder.
 
-Launch game → Character AddOns → enable Nips Roll (NRG).
+So you have:
 
-Quick usage (host)
+...\NipsRoll\NipsRoll.toc
+...\NipsRoll\NipsRoll.lua
 
-Open with /nrg.
 
-Pick Channel (SAY, PARTY, RAID, BATTLEGROUND).
+On the character AddOns screen, check Load out of date AddOns.
 
-Choose Mode:
+In-game, type /nrg to open the host panel.
 
-Hi/Lo (default): Everyone will /roll 1–100 (configurable). Highest number (i.e., closest to 100) wins; lowest pays highest the bet.
+🧩 Planned Features
 
-Death Roll (1v1): Set P1 and P2, choose a Start Max (default 1000). Players alternate /roll 1-X; whoever hits 1 loses and pays.
+Stats tracking (lifetime wins/losses by player).
 
-Set Bet (gold).
+Tie-breaker automation for Hi/Lo ties.
 
-Click New Game → it announces “NIPS ROLL GAME STARTED, PRESS 1 TO JOIN”.
+Auto-timers for join phase with countdown announcements.
 
-People type 1 in the chosen channel to join; they appear in the list.
+Optional whisper trade reminders to winner/loser.
 
-Click Last Call if you want.
+Guild and Raid Warning channel support.
 
-Click Start Rolling!
-
-Hi/Lo: The addon listens for /roll <min>-<max> results and auto-announces settlement: “<low> pays <high> <bet>g.”
-
-Death Roll: It enforces turn order, updates the current max each roll, and announces the loser/winner and settlement.
-
-Cancel/Reset ends the current session and clears the roster.
+Localized roll parser for non-English clients.
