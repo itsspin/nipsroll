@@ -1,14 +1,14 @@
--- Nips Roll (NRG) - 3.3.5a (Project Epoch) - v1.0.3
--- Hardened: no EditBox:SetNumeric, UI builds on PLAYER_LOGIN, dual slash commands.
+-- Nips Roll (NRG) - 3.3.5a (Project Epoch) - v1.0.4
+-- Fixes: removed parse-time bug, no SetNumeric/SetEnabled on EditBoxes, UI builds on PLAYER_LOGIN, dual slash commands.
 
 NipsRollDB = NipsRollDB or {}
 
--- Early slashes (so you always get feedback)
+-- Early slashes so you always get feedback even if something else breaks later.
 SLASH_NRG1 = "/nrg"
 SLASH_NRG2 = "/nips"
 SlashCmdList["NRG"] = function()
   if NRG and NRG.Toggle then NRG.Toggle()
-  else DEFAULT_CHAT_FRAME:AddMessage("|cFF66C7FF[NRG]|r Loaded. If panel didn’t open, /reload then try again.") end
+  else DEFAULT_CHAT_FRAME:AddMessage("|cFF66C7FF[NRG]|r Loaded. If the panel didn’t open, type /reload then /nrg again.") end
 end
 SlashCmdList["NIPS"] = SlashCmdList["NRG"]
 
@@ -16,9 +16,8 @@ local function sys(msg) DEFAULT_CHAT_FRAME:AddMessage("|cFF66C7FF[NRG]|r "..tost
 local function trimRealm(name) return name and name:match("([^%-]+)") or name end
 local function strtrim(s) return (s:gsub("^%s+",""):gsub("%s+$","")) end
 
--- ------------ State ------------
-local NRG = {}
-_G.NRG = NRG
+-- ---------------- State ----------------
+local NRG = {} _G.NRG = NRG
 
 local state = {
   phase="IDLE",          -- IDLE | JOINING | ROLLING | DEATHROLL
@@ -45,13 +44,14 @@ local function canUseChannel(chan)
   if chan=="BATTLEGROUND" then return true end
   return false
 end
+
 local function say(chan,msg)
   if not canUseChannel(chan) then sys("Channel "..chan.." not available here; showing locally:\n"..msg); return end
   SendChatMessage(msg, chan)
 end
 local function announce(msg) say(state.channel, msg) end
 
--- ------------ Roster ------------
+-- ---------------- Roster ----------------
 local function addJoiner(name)
   name = trimRealm(name)
   if not name or name=="" then return end
@@ -61,19 +61,21 @@ local function addJoiner(name)
     NRG.UpdateRoster()
   end
 end
+
 local function setRoll(name,val)
   if state.joiners[name] and state.joiners[name].roll==nil then
     state.joiners[name].roll = val
     NRG.UpdateRoster()
   end
 end
+
 local function everyoneRolled()
   if #state.ordered==0 then return false end
   for _,n in ipairs(state.ordered) do if not state.joiners[n].roll then return false end end
   return true
 end
 
--- ------------ UI ------------
+-- ---------------- UI ----------------
 local ui = {}
 
 local function FS(parent,text,size)
@@ -82,17 +84,20 @@ local function FS(parent,text,size)
   if size then local f,_,fl=fs:GetFont(); fs:SetFont(f,size,fl) end
   return fs
 end
+
 local function Btn(parent,text,w,h,onClick)
   local b=CreateFrame("Button",nil,parent,"UIPanelButtonTemplate")
   b:SetSize(w,h); b:SetText(text); b:SetScript("OnClick",onClick)
   return b
 end
+
 local function Check(parent,text,onClick)
   local c=CreateFrame("CheckButton",nil,parent,"UICheckButtonTemplate")
   c:SetScript("OnClick",function(self) PlaySound("igMainMenuOptionCheckBoxOn"); if onClick then onClick(self) end end)
   local l=parent:CreateFontString(nil,"OVERLAY","GameFontNormal"); l:SetPoint("LEFT",c,"RIGHT",4,0); l:SetText(text); c._label=l
   return c
 end
+
 local function Edit(parent,w,h,initial,onChanged)
   local e=CreateFrame("EditBox",nil,parent,"InputBoxTemplate")
   e:SetSize(w,h); e:SetAutoFocus(false); e:SetTextInsets(6,6,2,2)
@@ -121,14 +126,6 @@ function NRG.UpdateRoster()
   ui.roster:SetText(table.concat(t,"\n"))
 end
 
-local function UpdateModeUI()
-  if not ui.frame then return end
-  local hilo = (state.mode=="HILO")
-  ui.rollMin:SetEnabled(hilo); ui.rollMax:SetEnabled(hilo)
-  ui.drMax:SetEnabled(not hilo); ui.p1Edit:SetEnabled(not hilo); ui.p2Edit:SetEnabled(not hilo)
-  NRG.UpdateRoster()
-end
-
 local function BuildUI()
   if ui.frame then return end
   local f=CreateFrame("Frame","NipsRollFrame",UIParent); ui.frame=f
@@ -152,9 +149,9 @@ local function BuildUI()
   ui.chanChecks[1]:SetChecked(true)
 
   local modeLbl=FS(f,"Mode:",12); modeLbl:SetPoint("TOPLEFT",18,-70)
-  ui.hilo=Check(f,"Hi/Lo",function() ui.hilo:SetChecked(true); ui.death:SetChecked(false); state.mode="HILO"; UpdateModeUI() end)
+  ui.hilo=Check(f,"Hi/Lo",function() ui.hilo:SetChecked(true); ui.death:SetChecked(false); state.mode="HILO"; NRG.UpdateRoster() end)
   ui.hilo:SetPoint("LEFT",modeLbl,"RIGHT",10,0); ui.hilo:SetChecked(true)
-  ui.death=Check(f,"Death Roll (1v1)",function() ui.hilo:SetChecked(false); ui.death:SetChecked(true); state.mode="DEATH"; UpdateModeUI() end)
+  ui.death=Check(f,"Death Roll (1v1)",function() ui.hilo:SetChecked(false); ui.death:SetChecked(true); state.mode="DEATH"; NRG.UpdateRoster() end)
   ui.death:SetPoint("LEFT",ui.hilo._label,"RIGHT",20,0)
 
   local betLbl=FS(f,"Bet (gold):",12); betLbl:SetPoint("TOPLEFT",18,-100)
@@ -217,7 +214,7 @@ local function BuildUI()
   ui.joinSelf=Btn(f,"Join (You)",100,22,function()
     if state.mode~="HILO" or state.phase~="JOINING" then sys("You can only join during Hi/Lo JOINING.") return end
     addJoiner(state.host)
-  end))
+  end)
   ui.joinSelf:SetPoint("LEFT",ui.lastBtn,"RIGHT",10,0)
 
   ui.startBtn=Btn(f,"Start Rolling!",120,24,function()
@@ -249,12 +246,15 @@ local function BuildUI()
 
   FS(f,"|cFFAAAAAA/nrg or /nips to show/hide|r",11):SetPoint("BOTTOMRIGHT",-12,10)
 
-  UpdateModeUI(); NRG.UpdateRoster()
+  NRG.UpdateRoster()
 end
 
-function NRG.Toggle() BuildUI(); if ui.frame:IsShown() then ui.frame:Hide() else ui.frame:Show() end end
+function NRG.Toggle()
+  BuildUI()
+  if ui.frame:IsShown() then ui.frame:Hide() else ui.frame:Show() end
+end
 
--- ------------ Roll logic ------------
+-- ---------------- Roll logic ----------------
 local function announceHiLoResult()
   if #state.ordered<2 then return end
   local highN,highV,lowN,lowV=nil,-1,nil,math.huge
@@ -264,7 +264,9 @@ local function announceHiLoResult()
   if not highN or not lowN then return end
   announce(("Results: High %s (%d) | Low %s (%d)"):format(highN,highV,lowN,lowV))
   if highN==lowN then announce("Tie detected. Host: run a tie-break."); resetGame(); return end
-  announce(("Settlement: %s pays %s %dg."):format(lowN,highN,state.betGold)); sys(("Settlement: %s -> %s (%dg)"):format(lowN,highN,state.betGold)); resetGame()
+  announce(("Settlement: %s pays %s %dg."):format(lowN,highN,state.betGold))
+  sys(("Settlement: %s -> %s (%dg)"):format(lowN,highN,state.betGold))
+  resetGame()
 end
 
 local function handleHiLoRoll(name,roll,rmin,rmax)
@@ -282,13 +284,18 @@ local function handleDeathRoll(name,roll,rmin,rmax)
   if rmin~=1 or rmax~=state.dr.currentMax then return end
   if trimRealm(name)~=trimRealm(currDR()) then return end
   announce(("%s rolled %d (1-%d)"):format(name,roll,rmax))
-  if roll==1 then local winner=(state.dr.turn==1) and state.dr.p2 or state.dr.p1
+  if roll==1 then
+    local winner=(state.dr.turn==1) and state.dr.p2 or state.dr.p1
     announce(("DEATH ROLL: %s rolled 1 and loses! %s pays %s %dg."):format(name,name,winner,state.betGold))
-    sys(("Death Roll settled: %s -> %s (%dg)"):format(name,winner,state.betGold)); resetGame(); return end
-  state.dr.currentMax=roll; swapDR(); announce(("Next: %s to /roll 1-%d"):format(currDR(),state.dr.currentMax)); NRG.UpdateRoster()
+    sys(("Death Roll settled: %s -> %s (%dg)"):format(name,winner,state.betGold))
+    resetGame(); return
+  end
+  state.dr.currentMax=roll; swapDR()
+  announce(("Next: %s to /roll 1-%d"):format(currDR(),state.dr.currentMax))
+  NRG.UpdateRoster()
 end
 
--- ------------ Events ------------
+-- ---------------- Events ----------------
 local evt=CreateFrame("Frame")
 evt:SetScript("OnEvent", function(_,event,...)
   if event=="PLAYER_LOGIN" then
