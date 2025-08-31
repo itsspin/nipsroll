@@ -2,7 +2,7 @@
 ## Title: Nips Roll (NRG)
 ## Notes: Hi/Lo and Death Roll host tools (SAY/PARTY/RAID/BATTLEGROUND)
 ## Author: Spin + Alyx
-## Version: 1.0.3
+## Version: 1.0.4
 ## SavedVariables: NipsRollDB
 ## LoadOnDemand: 0
 
