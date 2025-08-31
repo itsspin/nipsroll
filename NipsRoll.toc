@@ -1,0 +1,8 @@
+## Interface: 30300
+## Title: Nips Roll (NRG)
+## Notes: Party/Raid/BG roll games + Death Roll host tools
+## Author: Spin + Alyx
+## Version: 1.0.0
+## SavedVariables: NipsRollDB
+
+NipsRoll.lua
